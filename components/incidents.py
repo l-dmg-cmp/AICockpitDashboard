@@ -15,54 +15,15 @@ def show_incidents_dashboard(jira_client):
     """Display comprehensive incidents dashboard"""
     st.header("🚨 Incident Analysis Dashboard")
     
-    # For incidents tab, get ALL incidents including those without area labels
+    # For incidents tab, get incidents from the main dataset
     try:
-        all_incidents_issues = jira_client.jira.search_issues(
-            f'project = AICP AND type = 10300',
-            maxResults=1000
-        )
+        all_issues_df = jira_client.get_board_issues()
         
-        incidents_data = []
-        for issue in all_incidents_issues:
-            # Extract labels
-            all_labels = [str(label) for label in issue.fields.labels] if issue.fields.labels else []
-            
-            # Filter and normalize labels
-            filtered_labels = []
-            for label in all_labels:
-                label_lower = label.lower()
-                if 'desenvolvimento' in label_lower or 'development' in label_lower:
-                    filtered_labels.append('Desenvolvimento')
-                elif 'devops' in label_lower:
-                    filtered_labels.append('DevOps')
-                elif 'qualidade' in label_lower or 'quality' in label_lower:
-                    filtered_labels.append('Qualidade')
-                elif 'dados' in label_lower or 'data' in label_lower:
-                    filtered_labels.append('Dados')
-                elif 'arquitetura' in label_lower or 'architecture' in label_lower:
-                    filtered_labels.append('Arquitetura')
-            
-            labels = list(set(filtered_labels))
-            
-            assignee = issue.fields.assignee.displayName if issue.fields.assignee else "Unassigned"
-            created = datetime.strptime(issue.fields.created[:19], '%Y-%m-%dT%H:%M:%S')
-            updated = datetime.strptime(issue.fields.updated[:19], '%Y-%m-%dT%H:%M:%S')
-            
-            incidents_data.append({
-                'key': issue.key,
-                'summary': issue.fields.summary,
-                'status': issue.fields.status.name,
-                'priority': issue.fields.priority.name if issue.fields.priority else 'Medium',
-                'assignee': assignee,
-                'reporter': issue.fields.reporter.displayName if issue.fields.reporter else 'Unknown',
-                'issue_type': issue.fields.issuetype.name,
-                'areas': ', '.join(labels) if labels else 'No Area',
-                'created': created,
-                'updated': updated,
-                'is_incident': True
-            })
-        
-        incidents_df = pd.DataFrame(incidents_data)
+        # Filter for incidents - look for incident type or specific issue type ID
+        incidents_df = all_issues_df[
+            (all_issues_df['issue_type'].str.lower().str.contains('incident', na=False)) |
+            (all_issues_df['issue_type'] == 'Incident')
+        ].copy()
         
     except Exception as e:
         st.error(f"Error fetching incidents: {str(e)}")

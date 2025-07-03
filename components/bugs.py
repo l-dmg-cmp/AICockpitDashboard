@@ -15,54 +15,10 @@ def show_bugs_dashboard(jira_client):
     """Display comprehensive bugs dashboard"""
     st.header("🐛 Bug Analysis Dashboard")
     
-    # For bugs tab, get ALL bugs including those without area labels
+    # For bugs tab, get ALL bugs from the main dataset and filter for bugs
     try:
-        all_bugs_issues = jira_client.jira.search_issues(
-            f'project = AICP AND type = Bug',
-            maxResults=1000
-        )
-        
-        bugs_data = []
-        for issue in all_bugs_issues:
-            # Extract labels
-            all_labels = [str(label) for label in issue.fields.labels] if issue.fields.labels else []
-            
-            # Filter and normalize labels
-            filtered_labels = []
-            for label in all_labels:
-                label_lower = label.lower()
-                if 'desenvolvimento' in label_lower or 'development' in label_lower:
-                    filtered_labels.append('Desenvolvimento')
-                elif 'devops' in label_lower:
-                    filtered_labels.append('DevOps')
-                elif 'qualidade' in label_lower or 'quality' in label_lower:
-                    filtered_labels.append('Qualidade')
-                elif 'dados' in label_lower or 'data' in label_lower:
-                    filtered_labels.append('Dados')
-                elif 'arquitetura' in label_lower or 'architecture' in label_lower:
-                    filtered_labels.append('Arquitetura')
-            
-            labels = list(set(filtered_labels))
-            
-            assignee = issue.fields.assignee.displayName if issue.fields.assignee else "Unassigned"
-            created = datetime.strptime(issue.fields.created[:19], '%Y-%m-%dT%H:%M:%S')
-            updated = datetime.strptime(issue.fields.updated[:19], '%Y-%m-%dT%H:%M:%S')
-            
-            bugs_data.append({
-                'key': issue.key,
-                'summary': issue.fields.summary,
-                'status': issue.fields.status.name,
-                'priority': issue.fields.priority.name if issue.fields.priority else 'Medium',
-                'assignee': assignee,
-                'reporter': issue.fields.reporter.displayName if issue.fields.reporter else 'Unknown',
-                'issue_type': issue.fields.issuetype.name,
-                'areas': ', '.join(labels) if labels else 'No Area',
-                'created': created,
-                'updated': updated,
-                'is_bug': True
-            })
-        
-        bugs_df = pd.DataFrame(bugs_data)
+        all_issues_df = jira_client.get_board_issues()
+        bugs_df = all_issues_df[all_issues_df['is_bug'] == True].copy()
         
     except Exception as e:
         st.error(f"Error fetching bugs: {str(e)}")
