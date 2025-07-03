@@ -32,7 +32,6 @@ JIRA_API_KEY = jira_config['api_key']
 # Jira Configuration
 JIRA_SERVER = jira_config['server']
 PROJECT_KEY = "AICP"
-BOARD_ID = 3462
 
 # Dashboard Configuration
 AREAS = [

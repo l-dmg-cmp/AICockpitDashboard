@@ -7,7 +7,7 @@ import pandas as pd
 import requests
 import base64
 from datetime import datetime, timedelta
-from config.settings import JIRA_SERVER, PROJECT_KEY, BOARD_ID, AREAS
+from config.settings import JIRA_SERVER, PROJECT_KEY, AREAS
 
 
 class JiraClientRequests:
@@ -89,93 +89,95 @@ class JiraClientRequests:
             except Exception as e:
                 print(f"DEBUG: Failed to search project {project_key}: {e}")
             
-            # Process issues data
-            issues_data = []
-            for issue_data in all_issues:
-                try:
-                    fields = issue_data['fields']
-                    
-                    # Extract labels
-                    all_labels = [str(label) for label in fields.get('labels', [])]
-                    
-                    # Filter and normalize labels
-                    filtered_labels = []
-                    for label in all_labels:
-                        label_lower = label.lower()
-                        if 'desenvolvimento' in label_lower or 'development' in label_lower:
-                            filtered_labels.append('Desenvolvimento')
-                        elif 'devops' in label_lower:
-                            filtered_labels.append('DevOps')
-                        elif 'qualidade' in label_lower or 'quality' in label_lower:
-                            filtered_labels.append('Qualidade')
-                        elif 'dados' in label_lower or 'data' in label_lower:
-                            filtered_labels.append('Dados')
-                        elif 'arquitetura' in label_lower or 'architecture' in label_lower:
-                            filtered_labels.append('Arquitetura')
-                    
-                    labels = list(set(filtered_labels))
-                    
-                    # Get assignee
-                    assignee = "Unassigned"
-                    if fields.get('assignee'):
-                        assignee = fields['assignee'].get('displayName', 'Unknown')
-                    
-                    # Get dates
-                    created = datetime.strptime(fields['created'][:19], '%Y-%m-%dT%H:%M:%S')
-                    updated = datetime.strptime(fields['updated'][:19], '%Y-%m-%dT%H:%M:%S')
-                    
-                    # Get due date
-                    due_date = None
-                    if fields.get('duedate'):
-                        try:
-                            due_date = datetime.strptime(fields['duedate'], '%Y-%m-%d')
-                        except:
-                            due_date = None
-                    
-                    # Get start date from custom field
-                    start_date = None
-                    if fields.get('customfield_11317'):
-                        try:
-                            start_date = datetime.strptime(fields['customfield_11317'], '%Y-%m-%d')
-                        except:
-                            start_date = None
-                    
-                    # Determine quarter
-                    quarter_date = start_date if start_date else created
-                    quarter = _self._get_quarter(quarter_date)
-                    
-                    # Only include issues with matching area labels
-                    if labels:
-                        issue_info = {
-                            'key': issue_data['key'],
-                            'summary': fields['summary'],
-                            'status': fields['status']['name'],
-                            'priority': fields['priority']['name'] if fields.get('priority') else 'Medium',
-                            'assignee': assignee,
-                            'reporter': fields['reporter']['displayName'] if fields.get('reporter') else 'Unknown',
-                            'issue_type': fields['issuetype']['name'],
-                            'labels': labels,
-                            'areas': ', '.join(labels),
-                            'created': created,
-                            'updated': updated,
-                            'due_date': due_date,
-                            'start_date': start_date,
-                            'quarter': quarter,
-                            'is_bug': fields['issuetype']['name'].lower() in ['bug', 'defect', 'error'],
-                            'story_points': fields.get('customfield_10016'),
-                            'description': fields.get('description', '')[:200] + '...' if fields.get('description') else ''
-                        }
-                        issues_data.append(issue_info)
-                        
-                except Exception as e:
-                    print(f"Error processing issue {issue_data.get('key', 'unknown')}: {e}")
-                    continue
-            
-            return pd.DataFrame(issues_data)
+            return _self._process_issues(all_issues)
             
         except Exception as e:
             st.error(f"Error fetching issues: {str(e)}")
             return pd.DataFrame()
+
+    def _process_issues(_self, issues_list):
+        """Process a list of issues into a DataFrame"""
+        issues_data = []
+        for issue_data in issues_list:
+            try:
+                fields = issue_data['fields']
+                
+                # Extract labels
+                all_labels = [str(label) for label in fields.get('labels', [])]
+                
+                # Filter and normalize labels
+                filtered_labels = []
+                for label in all_labels:
+                    label_lower = label.lower()
+                    if 'desenvolvimento' in label_lower or 'development' in label_lower:
+                        filtered_labels.append('Desenvolvimento')
+                    elif 'devops' in label_lower:
+                        filtered_labels.append('DevOps')
+                    elif 'qualidade' in label_lower or 'quality' in label_lower:
+                        filtered_labels.append('Qualidade')
+                    elif 'dados' in label_lower or 'data' in label_lower:
+                        filtered_labels.append('Dados')
+                    elif 'arquitetura' in label_lower or 'architecture' in label_lower:
+                        filtered_labels.append('Arquitetura')
+                
+                labels = list(set(filtered_labels))
+                
+                # Get assignee
+                assignee = "Unassigned"
+                if fields.get('assignee'):
+                    assignee = fields['assignee'].get('displayName', 'Unknown')
+                
+                # Get dates
+                created = datetime.strptime(fields['created'][:19], '%Y-%m-%dT%H:%M:%S')
+                updated = datetime.strptime(fields['updated'][:19], '%Y-%m-%dT%H:%M:%S')
+                
+                # Get due date
+                due_date = None
+                if fields.get('duedate'):
+                    try:
+                        due_date = datetime.strptime(fields['duedate'], '%Y-%m-%d')
+                    except:
+                        due_date = None
+                
+                # Get start date from custom field
+                start_date = None
+                if fields.get('customfield_11317'):
+                    try:
+                        start_date = datetime.strptime(fields['customfield_11317'], '%Y-%m-%d')
+                    except:
+                        start_date = None
+                
+                # Determine quarter
+                quarter_date = start_date if start_date else created
+                quarter = _self._get_quarter(quarter_date)
+                
+                # Process all issues, assigning 'No Area' if no labels match
+                issue_info = {
+                    'key': issue_data['key'],
+                    'summary': fields['summary'],
+                    'status': fields['status']['name'],
+                    'priority': fields['priority']['name'] if fields.get('priority') else 'Medium',
+                    'assignee': assignee,
+                    'reporter': fields['reporter']['displayName'] if fields.get('reporter') else 'Unknown',
+                    'issue_type': fields['issuetype']['name'],
+                    'labels': labels,
+                    'areas': ', '.join(labels) if labels else 'No Area',
+                    'created': created,
+                    'updated': updated,
+                    'due_date': due_date,
+                    'start_date': start_date,
+                    'quarter': quarter,
+                    'is_bug': fields['issuetype']['name'].lower() in ['bug', 'defect', 'error'],
+                    'story_points': fields.get('customfield_10016'),
+                    'description': fields.get('description', '')[:200] + '...' if fields.get('description') else ''
+                }
+                issues_data.append(issue_info)
+                    
+            except Exception as e:
+                print(f"Error processing issue {issue_data.get('key', 'unknown')}: {e}")
+                continue
+        
+        return pd.DataFrame(issues_data)
     
     def _get_quarter(self, date):
         """Determine quarter from date"""
@@ -190,6 +192,32 @@ class JiraClientRequests:
             return f"Q3 {year}"
         else:
             return f"Q4 {year}"
+            
+    @st.cache_data(ttl=300)
+    def get_bugs(_self, project_key=PROJECT_KEY):
+        """Fetch all bugs for a specific project using a direct JQL query."""
+        try:
+            jql = f'project = "{project_key}" AND issuetype = Bug'
+            search_data = _self._make_request('search', {'jql': jql, 'maxResults': 1000, 'fields': '*all'})
+            if search_data and 'issues' in search_data:
+                return _self._process_issues(search_data['issues'])
+            return pd.DataFrame()
+        except Exception as e:
+            st.error(f"Error fetching bugs: {str(e)}")
+            return pd.DataFrame()
+
+    @st.cache_data(ttl=300)
+    def get_incidents(_self, project_key=PROJECT_KEY):
+        """Fetch all incidents for a specific project using a more flexible JQL query."""
+        try:
+            jql = f'project = "{project_key}" AND issuetype in (Incident, Incidente)'
+            search_data = _self._make_request('search', {'jql': jql, 'maxResults': 1000, 'fields': '*all'})
+            if search_data and 'issues' in search_data:
+                return _self._process_issues(search_data['issues'])
+            return pd.DataFrame()
+        except Exception as e:
+            st.error(f"Error fetching incidents: {str(e)}")
+            return pd.DataFrame()
     
     @st.cache_data(ttl=300)
     def get_project_statistics(_self, project_key=PROJECT_KEY):

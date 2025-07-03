@@ -15,15 +15,9 @@ def show_incidents_dashboard(jira_client, project_key):
     """Display comprehensive incidents dashboard for a specific project"""
     st.header(f"🚨 Incident Analysis: {project_key}")
     
-    # For incidents tab, get incidents from the main dataset for the specified project
+    # For incidents tab, get all incidents from the specified project using the direct method
     try:
-        all_issues_df = jira_client.get_board_issues(project_key=project_key)
-        
-        # Filter for incidents - look for incident type or specific issue type ID
-        incidents_df = all_issues_df[
-            (all_issues_df['issue_type'].str.lower().str.contains('incident', na=False)) |
-            (all_issues_df['issue_type'] == 'Incident')
-        ].copy()
+        incidents_df = jira_client.get_incidents(project_key=project_key)
         
     except Exception as e:
         st.error(f"Error fetching incidents: {str(e)}")

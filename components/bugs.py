@@ -15,10 +15,9 @@ def show_bugs_dashboard(jira_client, project_key):
     """Display comprehensive bugs dashboard for a specific project"""
     st.header(f"🐛 Bug Analysis: {project_key}")
     
-    # For bugs tab, get all bugs from the specified project
+    # For bugs tab, get all bugs from the specified project using the direct method
     try:
-        all_issues_df = jira_client.get_board_issues(project_key=project_key)
-        bugs_df = all_issues_df[all_issues_df['is_bug'] == True].copy()
+        bugs_df = jira_client.get_bugs(project_key=project_key)
         
     except Exception as e:
         st.error(f"Error fetching bugs: {str(e)}")

@@ -6,7 +6,7 @@ import streamlit as st
 import pandas as pd
 from jira import JIRA
 from datetime import datetime, timedelta
-from config.settings import JIRA_SERVER, PROJECT_KEY, BOARD_ID, AREAS
+from config.settings import JIRA_SERVER, PROJECT_KEY, AREAS
 
 
 class JiraClient:
