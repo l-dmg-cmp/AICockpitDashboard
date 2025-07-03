@@ -16,7 +16,9 @@ class JiraClient:
         self.api_key = api_key
         self.jira = JIRA(
             server=JIRA_SERVER,
-            basic_auth=(email, api_key)
+            basic_auth=(email, api_key),
+            timeout=30,  # 30 second timeout for data operations
+            max_retries=2
         )
     
     @st.cache_data(ttl=300)  # Cache for 5 minutes

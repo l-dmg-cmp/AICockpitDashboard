@@ -3,8 +3,8 @@ AICockpit Dashboard - Main Streamlit Application
 """
 
 import streamlit as st
-from auth.login import show_login_form, is_authenticated, show_logout_button, get_credentials
-from jira_api.client import JiraClient
+from auth.login_requests import show_login_form, is_authenticated, show_logout_button, get_credentials
+from jira_api.client_requests import JiraClientRequests as JiraClient
 from components.bugs import show_bugs_dashboard
 from components.incidents import show_incidents_dashboard
 from components.priorities import show_priorities_dashboard
@@ -31,29 +31,7 @@ def main():
         margin-top: -2em;
     }
     
-    /* Hide main menu */
-    #MainMenu {visibility: hidden !important;}
-    [data-testid="stMainMenu"] {display: none !important;}
-    
-    /* Hide deploy button */
-    .stDeployButton {display: none !important;}
-    [data-testid="stAppDeployButton"] {display: none !important;}
-    button[data-testid="stBaseButton-header"] {display: none !important;}
-    
-    /* Hide footer */
-    footer {visibility: hidden !important;}
-    .stApp > footer {display: none !important;}
-    
-    /* Hide decoration */
-    #stDecoration {display: none !important;}
-    [data-testid="stDecoration"] {display: none !important;}
-    
-    /* Hide toolbar */
-    .stToolbar {display: none !important;}
-    [data-testid="stToolbar"] {display: none !important;}
-    
-    /* Hide header */
-    header[data-testid="stHeader"] {display: none !important;}
+
     
     /* Custom styling */
     .main-header {

@@ -115,7 +115,7 @@ nano config/settings.py
 ```python
 # Suas credenciais Jira
 JIRA_EMAIL = "lidinei@compasso.com.br"
-\ = "ATATT3xFfGF0N8nRYnMsqt6tXWGw6_fBObOks8GUOyxl-I8U7ghjvjc9-D3R3CHMnNGgdQgkPl2G-OYh5a-dYP8uIwvUxFWTXQGJk8t-3fI3-JGubm6bA3-8vMNFSZrg7j31vPia6xpnE4scZZaoTp3WmYO_jxOVArUDMS4VPfCjSoey-r1b9W4=110E475A"
+\ = ""
 ```
 
 ## 🚀 Passo 6: Executar Dashboard

@@ -50,10 +50,12 @@ def show_login_form():
 def authenticate_user(email, api_key):
     """Authenticate user with Jira API"""
     try:
-        # Create JIRA client with provided credentials
+        # Create JIRA client with provided credentials and timeout
         jira = JIRA(
             server=JIRA_SERVER,
-            basic_auth=(email, api_key)
+            basic_auth=(email, api_key),
+            timeout=15,  # 15 second timeout
+            max_retries=1
         )
         
         # Test connection by getting current user info
@@ -65,7 +67,9 @@ def authenticate_user(email, api_key):
             return False
             
     except Exception as e:
-        st.error(f"Authentication error: {str(e)}")
+        # Log the full error to the console for debugging
+        print(f"An exception occurred: {type(e).__name__} - {e}")
+        st.error("An unexpected error occurred during authentication. Please check the logs for details.")
         return False
 
 
