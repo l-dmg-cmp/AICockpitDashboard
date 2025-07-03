@@ -9,14 +9,14 @@ import pandas as pd
 from config.settings import COLORS, PRIORITY_MAPPING
 
 
-def show_priorities_dashboard(jira_client):
-    """Display comprehensive priorities dashboard"""
-    st.header("🎯 Priority Analysis Dashboard")
+def show_priorities_dashboard(jira_client, project_key):
+    """Display comprehensive priorities dashboard for a specific project"""
+    st.header(f"🎯 Priority Analysis: {project_key}")
     
-    # Get data
-    df = jira_client.get_board_issues()
+    # Get data for the specified project
+    df = jira_client.get_board_issues(project_key=project_key)
     if df.empty:
-        st.warning("No data available. Please check your Jira connection.")
+        st.warning("No data available for this project.")
         return
     
     # Priority metrics

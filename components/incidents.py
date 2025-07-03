@@ -11,13 +11,13 @@ from datetime import datetime, timedelta
 from config.settings import COLORS, STATUS_COLORS
 
 
-def show_incidents_dashboard(jira_client):
-    """Display comprehensive incidents dashboard"""
-    st.header("🚨 Incident Analysis Dashboard")
+def show_incidents_dashboard(jira_client, project_key):
+    """Display comprehensive incidents dashboard for a specific project"""
+    st.header(f"🚨 Incident Analysis: {project_key}")
     
-    # For incidents tab, get incidents from the main dataset
+    # For incidents tab, get incidents from the main dataset for the specified project
     try:
-        all_issues_df = jira_client.get_board_issues()
+        all_issues_df = jira_client.get_board_issues(project_key=project_key)
         
         # Filter for incidents - look for incident type or specific issue type ID
         incidents_df = all_issues_df[

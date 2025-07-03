@@ -11,14 +11,14 @@ from datetime import datetime, timedelta
 from config.settings import COLORS, AREA_COLORS, AREAS, STATUS_COLORS
 
 
-def show_gantt_dashboard(jira_client):
-    """Display interactive Gantt chart with area filtering"""
-    st.header("📊 Gantt Chart - Project Timeline")
+def show_gantt_dashboard(jira_client, project_key):
+    """Display interactive Gantt chart with area filtering for a specific project"""
+    st.header(f"📊 Gantt Chart - {project_key} Timeline")
     
-    # Get data
-    df = jira_client.get_board_issues()
+    # Get data for the specified project
+    df = jira_client.get_board_issues(project_key=project_key)
     if df.empty:
-        st.warning("No data available. Please check your Jira connection.")
+        st.warning("No data available for this project.")
         return
     
     # Sidebar filters
@@ -131,7 +131,7 @@ def show_gantt_dashboard(jira_client):
     st.markdown("---")
     
     # Prepare Gantt data
-    gantt_data = jira_client.get_gantt_data(selected_areas)
+    gantt_data = jira_client.get_gantt_data(project_key=project_key, selected_areas=selected_areas)
     
     if gantt_data.empty:
         st.warning("No data available for Gantt chart with current filters.")

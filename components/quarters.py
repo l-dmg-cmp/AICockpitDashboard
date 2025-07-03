@@ -11,14 +11,14 @@ from datetime import datetime, timedelta
 from config.settings import COLORS, AREA_COLORS
 
 
-def show_quarters_dashboard(jira_client):
-    """Display comprehensive quarters timeline dashboard"""
-    st.header("📅 Quarter Timeline Dashboard")
+def show_quarters_dashboard(jira_client, project_key):
+    """Display comprehensive quarters timeline dashboard for a specific project"""
+    st.header(f"📅 Quarter Timeline: {project_key}")
     
-    # Get data
-    df = jira_client.get_board_issues()
+    # Get data for the specified project
+    df = jira_client.get_board_issues(project_key=project_key)
     if df.empty:
-        st.warning("No data available. Please check your Jira connection.")
+        st.warning("No data available for this project.")
         return
     
     # Debug info about dates

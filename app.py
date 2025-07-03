@@ -10,7 +10,7 @@ from components.incidents import show_incidents_dashboard
 from components.priorities import show_priorities_dashboard
 from components.quarters import show_quarters_dashboard
 from components.gantt import show_gantt_dashboard
-from config.settings import PAGE_TITLE, PAGE_ICON, LAYOUT
+from config.settings import PAGE_TITLE, PAGE_ICON, LAYOUT, PROJECT_KEY
 
 
 def main():
@@ -95,19 +95,26 @@ def main():
     except Exception as e:
         st.error(f"Failed to initialize Jira client: {str(e)}")
         return
-    
-    # Header
-    st.markdown(f"""
-    <div class="main-header">
-        <h1>{PAGE_ICON} AICockpit Dashboard</h1>
-        <p>Comprehensive Jira Project Analytics & Visualization</p>
-    </div>
-    """, unsafe_allow_html=True)
-    
+
     # Sidebar
     with st.sidebar:
-        st.header("🎛️ Dashboard Navigation")
+        st.header("🎛️ Dashboard Controls")
+
+        # Project Key Selector
+        if 'project_key' not in st.session_state:
+            st.session_state.project_key = PROJECT_KEY  # Default
+
+        project_key_input = st.text_input(
+            "Jira Project Key", 
+            value=st.session_state.project_key,
+            help="Enter the Jira project key (e.g., AICP, CON) and press Enter."
+        )
         
+        if project_key_input != st.session_state.project_key:
+            st.session_state.project_key = project_key_input
+            st.cache_data.clear()  # Clear cache on project change
+            st.rerun()
+
         # Refresh button
         if st.button("🔄 Refresh Data", use_container_width=True):
             st.cache_data.clear()
@@ -120,7 +127,8 @@ def main():
         
         # Quick stats
         try:
-            stats = jira_client.get_project_statistics()
+            # Pass the selected project key to the stats function
+            stats = jira_client.get_project_statistics(project_key=st.session_state.project_key)
             if stats:
                 st.subheader("📊 Quick Stats")
                 st.metric("Total Issues", stats.get('total_issues', 0))
@@ -142,6 +150,15 @@ def main():
                         st.write(f"**{area}:** {count}")
         except Exception as e:
             st.warning("Could not load quick stats")
+
+    # Header
+    st.markdown(f"""
+    <div class="main-header">
+        <h1>{PAGE_ICON} AICockpit Dashboard</h1>
+        <p>Comprehensive Jira Project Analytics & Visualization</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
     
     # Main dashboard tabs
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
@@ -155,11 +172,11 @@ def main():
     
     with tab1:
         # Overview dashboard
-        st.header("📈 Project Overview")
+        st.header(f"📈 Project Overview: {st.session_state.project_key}")
         
         try:
-            # Get basic stats
-            df = jira_client.get_board_issues()
+            # Get basic stats for the selected project
+            df = jira_client.get_board_issues(project_key=st.session_state.project_key)
             if not df.empty:
                 # Key metrics
                 col1, col2, col3, col4, col5 = st.columns(5)
@@ -315,23 +332,23 @@ def main():
     
     with tab2:
         # Bugs dashboard
-        show_bugs_dashboard(jira_client)
+        show_bugs_dashboard(jira_client, project_key=st.session_state.project_key)
     
     with tab3:
         # Incidents dashboard
-        show_incidents_dashboard(jira_client)
+        show_incidents_dashboard(jira_client, project_key=st.session_state.project_key)
     
     with tab4:
         # Priorities dashboard
-        show_priorities_dashboard(jira_client)
+        show_priorities_dashboard(jira_client, project_key=st.session_state.project_key)
     
     with tab5:
         # Quarters dashboard
-        show_quarters_dashboard(jira_client)
+        show_quarters_dashboard(jira_client, project_key=st.session_state.project_key)
     
     with tab6:
         # Gantt chart dashboard
-        show_gantt_dashboard(jira_client)
+        show_gantt_dashboard(jira_client, project_key=st.session_state.project_key)
 
 
 if __name__ == "__main__":

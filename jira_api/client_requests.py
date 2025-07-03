@@ -39,18 +39,18 @@ class JiraClientRequests:
             return None
     
     @st.cache_data(ttl=300)  # Cache for 5 minutes
-    def get_board_issues(_self):
-        """Fetch all issues from the board using requests"""
+    def get_board_issues(_self, project_key=PROJECT_KEY):
+        """Fetch all issues from the board for a specific project"""
         try:
             all_issues = []
             
-            # Search for issues with specific labels
+            # Search for issues with specific labels within the project
             label_queries = [
-                'labels = "DevOps"',
-                'labels = "Arquitetura"', 
-                'labels = "Desenvolvimento"',
-                'labels = "Dados"',
-                'labels = "Qualidade"'
+                f'project = "{project_key}" AND labels = "DevOps"',
+                f'project = "{project_key}" AND labels = "Arquitetura"',
+                f'project = "{project_key}" AND labels = "Desenvolvimento"',
+                f'project = "{project_key}" AND labels = "Dados"',
+                f'project = "{project_key}" AND labels = "Qualidade"'
             ]
             
             existing_keys = set()
@@ -73,10 +73,10 @@ class JiraClientRequests:
                     print(f"DEBUG: Failed to search for {query}: {e}")
                     continue
             
-            # Also get issues from AICP project
+            # Also get issues from the project that might not have area labels
             try:
                 search_data = _self._make_request('search', {
-                    'jql': f'project = {PROJECT_KEY}',
+                    'jql': f'project = "{project_key}"',
                     'maxResults': 1000,
                     'fields': '*all'
                 })
@@ -87,7 +87,7 @@ class JiraClientRequests:
                             all_issues.append(issue_data)
                             existing_keys.add(issue_data['key'])
             except Exception as e:
-                print(f"DEBUG: Failed to search AICP project: {e}")
+                print(f"DEBUG: Failed to search project {project_key}: {e}")
             
             # Process issues data
             issues_data = []
@@ -192,10 +192,10 @@ class JiraClientRequests:
             return f"Q4 {year}"
     
     @st.cache_data(ttl=300)
-    def get_project_statistics(_self):
-        """Get project statistics and metrics"""
+    def get_project_statistics(_self, project_key=PROJECT_KEY):
+        """Get project statistics and metrics for a specific project"""
         try:
-            df = _self.get_board_issues()
+            df = _self.get_board_issues(project_key=project_key)
             if df.empty:
                 return {}
             
@@ -217,10 +217,10 @@ class JiraClientRequests:
             st.error(f"Error getting statistics: {str(e)}")
             return {}
     
-    def get_gantt_data(self, selected_areas=None):
-        """Get data formatted for Gantt chart"""
+    def get_gantt_data(self, project_key=PROJECT_KEY, selected_areas=None):
+        """Get data formatted for Gantt chart for a specific project"""
         try:
-            df = self.get_board_issues()
+            df = self.get_board_issues(project_key=project_key)
             if df.empty:
                 return pd.DataFrame()
             
