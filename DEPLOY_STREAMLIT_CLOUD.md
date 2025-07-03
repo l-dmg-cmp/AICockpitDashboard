@@ -9,15 +9,15 @@ ERROR: Failed building wheel for pandas
 
 ## 🔧 Arquivos Configurados
 
-### ✅ requirements.txt (Otimizado)
+### ✅ requirements.txt (Otimizado para Python 3.13.5)
 ```txt
 streamlit==1.28.0
 jira==3.4.0
 plotly==5.15.0
-pandas==1.5.3      # Versão estável para Streamlit Cloud
+pandas==2.0.3      # Compatível com Python 3.13.5
 requests==2.31.0
 python-dateutil==2.8.2
-numpy==1.21.6      # Compatível com pandas 1.5.3
+numpy>=1.24.0,<2.0.0  # Range compatível com Python 3.13.5
 ```
 
 ### ✅ packages.txt (Dependências do Sistema)
@@ -83,6 +83,16 @@ server = "https://compasso.atlassian.net"
 - ✅ **Sucesso**: App será acessível via URL
 
 ## 🔍 Troubleshooting
+
+### Problema: Python 3.13.5 Compatibility Error
+
+**Erro**: `numpy==1.21.6 requires Python >=3.7,<3.11`
+
+**Solução**: Já implementada no requirements.txt atual:
+```txt
+pandas==2.0.3
+numpy>=1.24.0,<2.0.0  # Range compatível com Python 3.13.5
+```
 
 ### Problema: Build ainda falha com pandas
 
